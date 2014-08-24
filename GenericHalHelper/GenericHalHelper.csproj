@@ -45,7 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions\InvalidEmbeddedResourceException.cs" />
+    <Compile Include="Exceptions\InvalidJsonLinkStructureException.cs" />
     <Compile Include="HalClient.cs" />
+    <Compile Include="Helpers\JCaseInsensitiveLookup.cs" />
     <Compile Include="Helpers\RelConstants.cs" />
     <Compile Include="Models\HalObject.cs" />
     <Compile Include="IHalClient.cs" />

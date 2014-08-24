@@ -1,4 +1,6 @@
-﻿using GenericHalHelper.Models;
+﻿using GenericHalHelper.Exceptions;
+using GenericHalHelper.Helpers;
+using GenericHalHelper.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -41,32 +43,54 @@ namespace GenericHalHelper
 
             var dictEmbedded = new Dictionary<string, HalObject>();
 
-            var dictLinks = new Dictionary<string, Link>();
+            var dictLinks = new Dictionary<string, IList<Link>>();
             if (links.Any())
             {
-                foreach (var link in links)
+                foreach (JProperty l in links)
                 {
-                    var l1 = JObject.Parse(string.Format("{{ {0} }}", link.ToString()))
-                                    .Properties();
-                    if (l1.Any())
+                    var rel = l.Name;
+                    if(l.Value.Type == JTokenType.Object)
                     {
-                        foreach (var p in l1)
-                        {
-                            var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(p.Values().ToString());
-                            dictLinks.Add(p.Name,
+                        var linksInRel = (l.Value as JObject);
+                        dictLinks.Add(rel, 
+                            new List<Link>() { 
                                 new Link()
                                 {
-                                    Name = dict.ContainsKey("name") ? dict["name"] : "",
-                                    Href = dict.ContainsKey("href") ? dict["href"] : "",
-                                    IsTemplate = dict.ContainsKey("templated") ? dict["templated"] : "",
-                                    Deprecation = dict.ContainsKey("deprecation") ? dict["deprecation"] : "",
-                                    Hreflang = dict.ContainsKey("hreflang") ? dict["hreflang"] : "",
-                                    Profile = dict.ContainsKey("profile") ? dict["profile"] : "",
-                                    Title = dict.ContainsKey("title") ? dict["title"] : "",
-                                    Type = dict.ContainsKey("type") ? dict["type"] : ""
+                                    Name = linksInRel.Lookup("name"),
+                                    Href = linksInRel.Lookup("Href"),
+                                    IsTemplate = linksInRel.Lookup("templated"),
+                                    Deprecation = linksInRel.Lookup("deprecation"),
+                                    Hreflang = linksInRel.Lookup("hreflang"),
+                                    Profile = linksInRel.Lookup("profile"),
+                                    Title = linksInRel.Lookup("title"),
+                                    Type = linksInRel.Lookup("type"),
                                 }
-                            );
+                            });
+                    }
+                    else if (l.Value.Type == JTokenType.Array)
+                    {
+                        var linksInRel = (l.Value as JArray);
+                        foreach (JObject item in linksInRel)
+                        {
+                            dictLinks.Add(rel,
+                                new List<Link>() { 
+                                new Link()
+                                {
+                                    Name = item.Lookup("name"),
+                                    Href = item.Lookup("Href"),
+                                    IsTemplate = item.Lookup("templated"),
+                                    Deprecation = item.Lookup("deprecation"),
+                                    Hreflang = item.Lookup("hreflang"),
+                                    Profile = item.Lookup("profile"),
+                                    Title = item.Lookup("title"),
+                                    Type = item.Lookup("type"),
+                                }
+                            });
                         }
+                    }
+                    else
+                    {
+                        throw new InvalidJsonLinkStructureException(string.Format("Could not deserialize link: {0}", rel));
                     }
                 }
             }
