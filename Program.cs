@@ -14,7 +14,7 @@ namespace GenericHalBrowser
             {
                 var HalMediaType = new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/vnd.hal+json");
                 client.DefaultRequestHeaders.Accept.Add(HalMediaType);
-                client.BaseAddress = new Uri("http://localhost:8081");
+                client.BaseAddress = new Uri("http://www.fbombcode.com");
                 HalClient hal = new HalClient(client);
                 var o = hal.Get("api");
 

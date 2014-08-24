@@ -23,9 +23,17 @@ namespace GenericHalHelper
 
         public HalObject Get(string relativePath)
         {
-            var jsonString = _client.GetStringAsync(relativePath);
+            var jsonString = _client.GetAsync(relativePath);
             jsonString.Wait();
-            return JsonParser.ParseJson(jsonString.Result);
+            var stringTask = jsonString.Result.Content.ReadAsStringAsync();
+            if (jsonString.Result.IsSuccessStatusCode)
+            {
+                return JsonParser.ParseJson(stringTask.Result);
+            }
+            else
+            {
+                throw new HttpRequestException(stringTask.Result);
+            }
         }
 
         public HalObject Get(string relativePath, object uriParamters)
